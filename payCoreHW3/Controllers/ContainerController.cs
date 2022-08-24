@@ -12,11 +12,12 @@ namespace payCoreHW3.Controllers
     public class ContainerController : ControllerBase
     {
         private readonly IMapperSession _session;
+
         public ContainerController(IMapperSession session)
         {
             _session = session;
-
         }
+
         [HttpGet]
         public List<Container> Get()
         {
@@ -25,7 +26,6 @@ namespace payCoreHW3.Controllers
         }
 
         [HttpPost]
-
         public IActionResult Post([FromBody] Container container)
         {
             try
@@ -33,7 +33,6 @@ namespace payCoreHW3.Controllers
                 _session.BeginTransaction();
                 _session.Save(container);
                 _session.Commit();
-
             }
             catch (Exception e)
             {
@@ -70,7 +69,6 @@ namespace payCoreHW3.Controllers
                 _session.BeginTransaction();
                 _session.Update(newContainer);
                 _session.Commit();
-
             }
 
             catch (Exception ex)
@@ -81,11 +79,9 @@ namespace payCoreHW3.Controllers
             finally
             {
                 _session.CloseTransaction();
-                
             }
 
             return Ok(new { message = "Container updated." });
-            
         }
 
         [HttpDelete]
@@ -99,10 +95,9 @@ namespace payCoreHW3.Controllers
                 _session.BeginTransaction();
                 _session.Delete(containerDelete);
                 _session.Commit();
-
             }
             catch (Exception e)
-            { 
+            {
                 _session.Rollback();
                 return BadRequest("Error has occured.");
             }
@@ -125,22 +120,18 @@ namespace payCoreHW3.Controllers
         }
 
         [HttpPost("ContainerCluster")]
-        public IActionResult ContainerClusters([FromQuery] long vehicleId, int n)
+        public IActionResult ContainerClusters([FromQuery] long vehicleId, int numberOfClusters)
         {
             var containerList = _session.Containers.Where(x => x.VehicleId == vehicleId).ToList();
-            //int divide = containerList.Count / n;
+            //int divide = containerList.Count / numberOfClusters;
             //Gelen n degerini kontrol et 0 olamaz, container sayisindan buyuk olamaz.
-            var list = containerList.Zip(Enumerable.Range(0, containerList.Count),
-                (s,r) => new
-                {
-                     Index= r, Item = s
-                })
-                .GroupBy(i=> i.Index % n,g => g.Item).ToList();
+            var list = containerList.Select(
+                    (container, index) => new
+                    {
+                        Index = index, Item = container
+                    })
+                .GroupBy(i => i.Index % numberOfClusters, g => g.Item).ToList();
             return Ok(list);
-
         }
-        
     }
-    
 }
-
