@@ -119,8 +119,8 @@ namespace payCoreHW3.Controllers
             return Ok(containers);
         }
 
-        [HttpPost("ContainerCluster")]
-        public IActionResult ContainerClusters([FromQuery] long vehicleId, int numberOfClusters)
+        [HttpPost("Cluster")]
+        public IActionResult Cluster([FromQuery] long vehicleId, int numberOfClusters)
         {
             var containerList = _session.Containers.Where(x => x.VehicleId == vehicleId).ToList();
             //int divide = containerList.Count / numberOfClusters;
@@ -128,9 +128,9 @@ namespace payCoreHW3.Controllers
             var list = containerList.Select(
                     (container, index) => new
                     {
-                        Index = index, Item = container
+                        ClusterIndex = index % numberOfClusters, Item = container
                     })
-                .GroupBy(i => i.Index % numberOfClusters, g => g.Item).ToList();
+                .GroupBy(i => i.ClusterIndex, g => g.Item).ToList();
             return Ok(list);
         }
     }

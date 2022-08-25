@@ -18,7 +18,7 @@ builder.Services.AddSwaggerGen();
 
 var mapper = new ModelMapper();
 //var xTypes = new[] {typeof(VehicleMap).Assembly.ExportedTypes,typeof(ContainerMap).Assembly.ExportedTypes };
-mapper.AddMappings(typeof(AllMap).Assembly.ExportedTypes);
+mapper.AddMappings(new []{typeof(ContainerMap), typeof(VehicleMap)});
 HbmMapping domainMapping = mapper.CompileMappingForAllExplicitlyAddedEntities();
 
 var cfg = new Configuration();

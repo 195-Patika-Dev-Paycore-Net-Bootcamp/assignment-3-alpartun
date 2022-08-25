@@ -97,19 +97,24 @@ namespace payCoreHW3.Controllers
             try
             {
                 _session.BeginTransaction();
-                _session.Delete(vehicle);
                 if (vehiclesContainer.Count!=0)
                 {
-                    _session.Delete(vehiclesContainer);
+                    foreach (var container in vehiclesContainer)
+                    {
+                        _session.Delete(container);
+                        
+                    }
 
                 }
+                _session.Delete(vehicle);
+
                 _session.Commit();
 
             }
             catch (Exception e)
             {
                 _session.Rollback();
-                return BadRequest("Delete error.");
+                throw;
             }
             finally
             {

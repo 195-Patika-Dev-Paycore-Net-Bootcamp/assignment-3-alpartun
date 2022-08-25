@@ -35,11 +35,11 @@ namespace payCoreHW3.Context
 
         public void CloseTransaction()
         {
-            if (_transaction != null)
-            {
+            //if (_transaction != null)
+            //{
                 _transaction.Dispose();
-                _transaction = null;
-            }
+                //_transaction = null;
+            //}
         }
 
         public void Save<T>(T entity) where T : class
