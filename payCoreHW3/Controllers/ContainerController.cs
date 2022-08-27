@@ -10,125 +10,179 @@ namespace payCoreHW3.Controllers
     [ApiController]
     [Route("api/[controller]")]
     public class ContainerController : ControllerBase
-    {
+    {            
+        //injection
         private readonly IMapperSession _session;
-
+        
         public ContainerController(IMapperSession session)
         {
             _session = session;
         }
-
+        
+        // GET
         [HttpGet]
         public List<Container> Get()
         {
+            //All Containers
             var result = _session.Containers.ToList();
+            // return Container list
             return result;
         }
-
+        // GET Containers by VehicleId
+        
+        [HttpGet("{vehicleId}")]
+        public IActionResult GetContainersByVehicleId(long vehicleId)
+        {
+            // get containers belongs to given vehicleId
+            var containers = _session.Containers.Where(x => x.VehicleId == vehicleId).ToList();
+            //check its empty or not
+            if (containers.Count == 0) return Ok("Does not exists.");
+            // return container(s)
+            return Ok(containers);
+        }
+        
+        
+        
+        // POST(Create)
         [HttpPost]
         public IActionResult Post([FromBody] Container container)
         {
             try
             {
+                // Start transaction
                 _session.BeginTransaction();
+                // Save container
                 _session.Save(container);
+                // commit operation
                 _session.Commit();
             }
             catch (Exception e)
             {
+                // if something went wrong
+                //rollback operation
                 _session.Rollback();
+                // return container creation error
                 return BadRequest("Container creation error.");
             }
             finally
             {
+                // closing transaction 
                 _session.CloseTransaction();
             }
-
+            // if everything is fine returns our new created container
             return Ok(container);
         }
-
+        
+        // PUT(Update)
+        
         [HttpPut]
         public IActionResult Put(Container container)
         {
-            if (container == null) return BadRequest("Container is null.");
-
+            // getting our old container using container.Id which is coming from request
             var oldContainer = _session.Containers.Where(x => x.Id == container.Id).FirstOrDefault();
-            if (oldContainer == null) return BadRequest("There is no such kind of container in datavase.");
+            // check container exists or not.
+            if (oldContainer == null) return BadRequest("Container does not exists.");
+            // Then create new container, changing values except Id and vehicleId those values comes from old one.
             Container newContainer = new()
             {
-                Id = oldContainer.VehicleId,
+                Id = oldContainer.VehicleId, // same id (taking oldest ones id)
                 ContainerName = container.ContainerName,
                 Latitude = container.Latitude,
                 Longitude = container.Longitude,
-                VehicleId = oldContainer.VehicleId
+                VehicleId = oldContainer.VehicleId // same VehicleId (taking oldest ones VehicleId)
             };
-
-
             try
             {
+                // start transaction
                 _session.BeginTransaction();
+                // update our container
                 _session.Update(newContainer);
+                // commit
                 _session.Commit();
             }
 
             catch (Exception ex)
             {
+                // if something went wrong
+                // rollback our operation
                 _session.Rollback();
-                return BadRequest("Exception");
+                // send error message
+                return BadRequest("Update container error.");
             }
             finally
             {
+                // close transaction
                 _session.CloseTransaction();
             }
-
+            // if everything is oki then send Ok with message
             return Ok(new { message = "Container updated." });
         }
-
+        
+        // DELETE
+        
         [HttpDelete]
         public IActionResult Delete(long id)
         {
+            // find container using given id
             var containerDelete = _session.Containers.Where(x => x.Id == id).FirstOrDefault();
-
+            // check container exists or not
             if (containerDelete == null) return BadRequest("Container does not exists.");
+            
             try
             {
+                // start transaction
                 _session.BeginTransaction();
+                // delete our container
                 _session.Delete(containerDelete);
+                // commit
                 _session.Commit();
             }
             catch (Exception e)
             {
+                // if something went wrong
+                // rollback our operation
                 _session.Rollback();
-                return BadRequest("Error has occured.");
+                // send error message
+                return BadRequest("Deletion failed.");
             }
             finally
             {
+                // close transaction
                 _session.CloseTransaction();
             }
-
+            // if everything is fine then return Ok with message
             return Ok("Container deleted successfully.");
         }
-
-        [HttpGet("{vehicleId}")]
-        public IActionResult GetContainersByVehicleId(long vehicleId)
-        {
-            var containers = _session.Containers.Where(x => x.VehicleId == vehicleId).ToList();
-
-            if (containers.Count == 0) return Ok("Does not exists.");
-
-            return Ok(containers);
-        }
-
+        
+        // Container Cluster
         [HttpPost("Cluster")]
         public IActionResult Cluster([FromQuery] long vehicleId, int numberOfClusters)
         {
+            // Find containers with same VehicleId
             var containerList = _session.Containers.Where(x => x.VehicleId == vehicleId).ToList();
-            //int divide = containerList.Count / numberOfClusters;
-            //Gelen n degerini kontrol et 0 olamaz, container sayisindan buyuk olamaz.
+            // check given numberOfClusters 0 or less.
+            if (numberOfClusters < 0) return BadRequest("numberOfClusters can not be 0 or less.");
+            // check given numberOfClusters bigger than container size.
+            if (numberOfClusters > containerList.Count) return BadRequest("numberOfClusters can not be bigger than container size.");
+            // Divide clusters with given numberOfClusters value using Select and GroupBy, i take module(remainder) of indexes because ->
+            
+            // Let say we have 8 containers then we have 0-7 indexes and we want to separate 2 groups.
+            
+            // index=0 % 2 = 0 (first group)
+            // index=1 % 2 = 1 (second group)
+            // index=2 % 2 = 0 (first group)
+            // index=3 % 2 = 1 (second group)
+            // index=4 % 2 = 0 (first group)
+            // index=5 % 2 = 1 (second group)
+            // index=6 % 2 = 0 (first group)
+            // index=7 % 2 = 1 (second group)
+            
+            // Its basic mat and suitable for this assignment actually.
+
             var list = containerList.Select(
                     (container, index) => new
                     {
-                        ClusterIndex = index % numberOfClusters, Item = container
+                        ClusterIndex = index % numberOfClusters /*Module(remainder)*/, Item = container
                     })
                 .GroupBy(i => i.ClusterIndex, g => g.Item).ToList();
             return Ok(list);

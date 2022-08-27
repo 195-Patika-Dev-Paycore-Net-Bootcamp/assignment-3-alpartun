@@ -10,13 +10,9 @@ namespace payCoreHW3.Mapping
     {
         public ContainerMap() 
         {
-        // public virtual long Id { get; set; }
-        // public virtual string ContainerName { get; set; } 
-        // public virtual decimal Latitude { get; set; }
-        // public virtual decimal Longitude { get; set; }
-        // public virtual long VehicleId { get; set; }
+            // Table name
             Table("container");
-
+            //Id->long type, autoincrement, default 0
             Id(x => x.Id,
                 x =>
                 {
@@ -24,12 +20,14 @@ namespace payCoreHW3.Mapping
                     x.UnsavedValue(0);
                     x.Generator(Generators.Increment);
                 } );
+            // ContainerName -> maxlength 50, string type
             Property(x => x.ContainerName,
                 x =>
                 {
                     x.Length(50);
                     x.Type(NHibernateUtil.String);
                 });
+            // Latitude -> decimal type(currency), precision 10, scale 6
             Property(x => x.Latitude,
                 x =>
                 {
@@ -37,6 +35,7 @@ namespace payCoreHW3.Mapping
                     x.Precision(10);
                     x.Scale(6);
                 });
+            // Longitude -> decimal type(currency), precision 10,scale 6
             Property(x => x.Longitude,
                 x =>
                 {
@@ -44,6 +43,7 @@ namespace payCoreHW3.Mapping
                     x.Precision(10);
                     x.Scale(6);
                 });
+            // VehicleId -> long type
             Property(x => x.VehicleId,
                 x =>
                 {

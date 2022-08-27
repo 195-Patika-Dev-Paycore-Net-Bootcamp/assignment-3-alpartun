@@ -64,7 +64,6 @@ namespace payCoreHW3.Context
 
         public List<Container> GetContainers()
         {
-            throw new NotImplementedException();
         }*/
     }
 }

@@ -10,118 +10,149 @@ namespace payCoreHW3.Controllers
     [Route("api/[controller]")]
     public class VehicleController : ControllerBase
     {
-        private readonly IMapperSession _session;
+        //injection
 
+        private readonly IMapperSession _session;
+    
         public VehicleController(IMapperSession session)
         {
             _session = session;
-        }        
+        }      
+        
+        // GET
         
         [HttpGet]
         public List<Vehicle> Get()
         {
+            // all vehicles
             var result = _session.Vehicles.ToList();
+            // return vehicle list
             return result;
         }
+        // GET by Id
 
         [HttpGet("{id}")]
         public IActionResult GetById(long id)
         {
+            // finding vehicle using given id
             var result = _session.Vehicles.Where(x => x.Id == id).FirstOrDefault();
-            if (result == null) return BadRequest("Vehicle id is wrong.");
+            // Check if the vehicle is exists or not.
+            if (result == null) return BadRequest("Vehicle cannot be founded.");
+            // return specific container
             return Ok(result);
         }
+        // POST(Create)
 
         [HttpPost]
         public IActionResult Post([FromBody] Vehicle vehicle)
         {
             try
             {
+                // BeginTransaction
                 _session.BeginTransaction();
+                // Save vehicle(comes from body)
                 _session.Save(vehicle);
+                //Commit operation
                 _session.Commit();
 
             }
             catch (Exception exception)
             {
-                _session.Rollback();
-                return BadRequest("Creation error.");
-            }
-            finally
-            {
-                _session.CloseTransaction();
-            }
-
-            return Ok("Successfully created.");
-        }
-
-        [HttpPut]
-        public ActionResult<Vehicle> Put([FromBody] Vehicle vehicleRequest)
-        {
-            var vehicle = _session.Vehicles.Where(x => x.Id == vehicleRequest.Id).FirstOrDefault();
-            if (vehicle == null) return NotFound("Arac bulunamadi.");
-
-            try
-            {
-                _session.BeginTransaction();
-
-                vehicle.VehicleName = vehicleRequest.VehicleName;
-                vehicle.VehiclePlate = vehicleRequest.VehiclePlate;
-                _session.Update(vehicle);
-                _session.Commit();
-
-            }
-            catch (Exception e)
-            {
-
-                _session.Rollback();
-                return BadRequest("Put process error.");
-            }
-            finally
-            {
-                _session.CloseTransaction();
-            }
-
-            return Ok(vehicle);
-            
-        }
-
-        [HttpDelete("{id}")]
-
-        public IActionResult Delete(long id)
-        {
-            var vehicle = _session.Vehicles.Where(x => x.Id == id).FirstOrDefault();
-            var vehiclesContainer = _session.Containers.Where(x => x.VehicleId == id).ToList();
-            if (vehicle == null) return BadRequest("Vehicle can not found.");
-
-            try
-            {
-                _session.BeginTransaction();
-                if (vehiclesContainer.Count!=0)
-                {
-                    foreach (var container in vehiclesContainer)
-                    {
-                        _session.Delete(container);
-                        
-                    }
-
-                }
-                _session.Delete(vehicle);
-
-                _session.Commit();
-
-            }
-            catch (Exception e)
-            {
+                // If something went wrong above then Rollback operations.
                 _session.Rollback();
                 throw;
             }
             finally
             {
+                // At the end CloseTransaction, either operation success or not.
                 _session.CloseTransaction();
             }
+            // If create operation succeeded then return Ok and message;
+            return Ok("Successfully created.");
+        }
 
-            return Ok("Delete operation success");
+        // PUT(Update)
+        [HttpPut]
+        public ActionResult<Vehicle> Put([FromBody] Vehicle vehicleRequest)
+        {
+            //Finding vehicle using id.
+            var vehicle = _session.Vehicles.Where(x => x.Id == vehicleRequest.Id).FirstOrDefault();
+            // Check vehicle is exists or not.
+            if (vehicle == null) return NotFound("Arac bulunamadi.");
+            // Change old VehicleName and old VehiclePlate to new VehicleName and new VehiclePlate.
+            vehicle.VehicleName = vehicleRequest.VehicleName;
+            vehicle.VehiclePlate = vehicleRequest.VehiclePlate;
+
+            try
+            {
+                // Start Transaction
+                _session.BeginTransaction();
+                // Update our vehicle
+                _session.Update(vehicle);
+                // Commit
+                _session.Commit();
+
+            }
+            catch (Exception e)
+            {
+                //Rollback if something went wrong.
+                _session.Rollback();
+                throw;
+            }
+            finally
+            {
+                // At the end CloseTransaction, either operation success or not.
+                _session.CloseTransaction();
+            }
+            // if everything is fine then return Ok with message.
+            return Ok("Vehicle is updated successfully.");
+        }
+        
+        // DELETE
+
+        [HttpDelete("{id}")]
+
+        public IActionResult Delete(long id)
+        {
+            // Find vehicle using given id.
+            var vehicle = _session.Vehicles.Where(x => x.Id == id).FirstOrDefault();
+            //Check vehicle is exists or not.
+            if (vehicle == null) return BadRequest("Vehicle can not found.");
+            // Finding  containers belongs to our vehicle using containers vehicleId and vehicles id.
+            var vehicleContainers = _session.Containers.Where(x => x.VehicleId == id).ToList();
+            try
+            {
+                // Begin transaction
+                _session.BeginTransaction();
+                // Check vehicleContainers list empty or not.
+                if (vehicleContainers.Count!=0)
+                {
+                    // If its not empty then delete each element using foreach
+                    foreach (var container in vehicleContainers)
+                    {
+                        //Delete operation
+                        _session.Delete(container);
+                    }
+                }
+                // Then delete vehicle
+                _session.Delete(vehicle);
+                // Commit
+                _session.Commit();
+
+            }
+            catch (Exception e)
+            {
+                //Rollback if something went wrong.
+                _session.Rollback();
+                return BadRequest("Deletion error.");
+            }
+            finally
+            {
+                // At the end CloseTransaction, either operation success or not.
+                _session.CloseTransaction();
+            }
+            // if everything is fine then return Ok with message.
+            return Ok("Vehicle is deleted successfully.");
         }
     }
 }

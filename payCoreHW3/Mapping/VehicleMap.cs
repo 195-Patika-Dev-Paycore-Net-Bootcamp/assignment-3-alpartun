@@ -11,8 +11,9 @@ namespace payCoreHW3.Mapping
     {
         public VehicleMap()
         {
+            //Table name
             Table("vehicle");
-
+            // Id -> long type, default value 0, autoincrement
             Id(x => x.Id,
                 x =>
             {
@@ -20,12 +21,14 @@ namespace payCoreHW3.Mapping
                 x.UnsavedValue(0);
                 x.Generator(Generators.Increment);
             } );
+            // VehicleName -> maxLength 50, string type
             Property(x => x.VehicleName,
                 x =>
                 {
                     x.Length(50);
                     x.Type(NHibernateUtil.String);
                 });
+            // VehiclePlate -> maxLength 14, string type
             Property(x => x.VehiclePlate,
                 x =>
                 {
