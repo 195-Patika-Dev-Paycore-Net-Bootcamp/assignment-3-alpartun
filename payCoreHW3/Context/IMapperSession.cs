@@ -1,12 +1,11 @@
-﻿using System;
-using System.Linq;
-using NHibernate.Mapping;
+﻿
 using payCoreHW3.Models;
 
 namespace payCoreHW3.Context
 {
     public interface IMapperSession 
     {
+        // creating our common operations
         void BeginTransaction();
         void Commit();
         void Rollback();
@@ -17,8 +16,7 @@ namespace payCoreHW3.Context
         
         IQueryable<Vehicle> Vehicles { get; }
         IQueryable<Container> Containers { get; }
-        /*List<Vehicle> GetVehicles();
-        List<Container> GetContainers();*/
+
 
     }
 

@@ -1,5 +1,4 @@
-﻿using System;
-using NHibernate;
+﻿using NHibernate;
 using NHibernate.Mapping.ByCode;
 using NHibernate.Mapping.ByCode.Conformist;
 
@@ -18,6 +17,7 @@ namespace payCoreHW3.Mapping
                 x =>
             {
                 x.Type(NHibernateUtil.Int64);
+                x.Column("id");
                 x.UnsavedValue(0);
                 x.Generator(Generators.Increment);
             } );

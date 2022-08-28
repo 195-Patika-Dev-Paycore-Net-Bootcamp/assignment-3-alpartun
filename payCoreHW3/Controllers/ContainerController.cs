@@ -1,5 +1,4 @@
-﻿using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using payCoreHW3.Context;
 using payCoreHW3.Models;
 
@@ -10,15 +9,15 @@ namespace payCoreHW3.Controllers
     [ApiController]
     [Route("api/[controller]")]
     public class ContainerController : ControllerBase
-    {            
-        //injection
+    {
         private readonly IMapperSession _session;
-        
+        //injection
+
         public ContainerController(IMapperSession session)
         {
             _session = session;
         }
-        
+
         // GET
         [HttpGet]
         public List<Container> Get()
@@ -29,7 +28,7 @@ namespace payCoreHW3.Controllers
             return result;
         }
         // GET Containers by VehicleId
-        
+
         [HttpGet("{vehicleId}")]
         public IActionResult GetContainersByVehicleId(long vehicleId)
         {
@@ -40,9 +39,8 @@ namespace payCoreHW3.Controllers
             // return container(s)
             return Ok(containers);
         }
-        
-        
-        
+
+
         // POST(Create)
         [HttpPost]
         public IActionResult Post([FromBody] Container container)
@@ -61,42 +59,39 @@ namespace payCoreHW3.Controllers
                 // if something went wrong
                 //rollback operation
                 _session.Rollback();
-                // return container creation error
-                return BadRequest("Container creation error.");
+                throw;
             }
             finally
             {
                 // closing transaction 
                 _session.CloseTransaction();
             }
+
+
             // if everything is fine returns our new created container
-            return Ok(container);
+            return Ok("Container is created.");
         }
-        
+
         // PUT(Update)
-        
+
         [HttpPut]
         public IActionResult Put(Container container)
         {
             // getting our old container using container.Id which is coming from request
-            var oldContainer = _session.Containers.Where(x => x.Id == container.Id).FirstOrDefault();
+            var containerUpdate = _session.Containers.Where(x => x.Id == container.Id).FirstOrDefault();
             // check container exists or not.
-            if (oldContainer == null) return BadRequest("Container does not exists.");
+            if (containerUpdate == null) return BadRequest("Container does not exists.");
             // Then create new container, changing values except Id and vehicleId those values comes from old one.
-            Container newContainer = new()
-            {
-                Id = oldContainer.VehicleId, // same id (taking oldest ones id)
-                ContainerName = container.ContainerName,
-                Latitude = container.Latitude,
-                Longitude = container.Longitude,
-                VehicleId = oldContainer.VehicleId // same VehicleId (taking oldest ones VehicleId)
-            };
+            containerUpdate.ContainerName = container.ContainerName;
+            containerUpdate.Latitude = container.Latitude;
+            containerUpdate.Longitude = container.Longitude;
+            containerUpdate.VehicleId = container.VehicleId;
             try
             {
                 // start transaction
                 _session.BeginTransaction();
                 // update our container
-                _session.Update(newContainer);
+                _session.Update(containerUpdate);
                 // commit
                 _session.Commit();
             }
@@ -106,20 +101,20 @@ namespace payCoreHW3.Controllers
                 // if something went wrong
                 // rollback our operation
                 _session.Rollback();
-                // send error message
-                return BadRequest("Update container error.");
+                throw;
             }
             finally
             {
                 // close transaction
                 _session.CloseTransaction();
             }
+
             // if everything is oki then send Ok with message
-            return Ok(new { message = "Container updated." });
+            return Ok( "Container is updated.");
         }
-        
+
         // DELETE
-        
+
         [HttpDelete]
         public IActionResult Delete(long id)
         {
@@ -127,7 +122,7 @@ namespace payCoreHW3.Controllers
             var containerDelete = _session.Containers.Where(x => x.Id == id).FirstOrDefault();
             // check container exists or not
             if (containerDelete == null) return BadRequest("Container does not exists.");
-            
+
             try
             {
                 // start transaction
@@ -142,18 +137,18 @@ namespace payCoreHW3.Controllers
                 // if something went wrong
                 // rollback our operation
                 _session.Rollback();
-                // send error message
-                return BadRequest("Deletion failed.");
+                throw;
             }
             finally
             {
                 // close transaction
                 _session.CloseTransaction();
             }
+
             // if everything is fine then return Ok with message
-            return Ok("Container deleted successfully.");
+            return Ok("Container is deleted.");
         }
-        
+
         // Container Cluster
         [HttpPost("Cluster")]
         public IActionResult Cluster([FromQuery] long vehicleId, int numberOfClusters)
@@ -163,11 +158,12 @@ namespace payCoreHW3.Controllers
             // check given numberOfClusters 0 or less.
             if (numberOfClusters < 0) return BadRequest("numberOfClusters can not be 0 or less.");
             // check given numberOfClusters bigger than container size.
-            if (numberOfClusters > containerList.Count) return BadRequest("numberOfClusters can not be bigger than container size.");
+            if (numberOfClusters > containerList.Count)
+                return BadRequest("numberOfClusters can not be bigger than container size.");
             // Divide clusters with given numberOfClusters value using Select and GroupBy, i take module(remainder) of indexes because ->
-            
+
             // Let say we have 8 containers then we have 0-7 indexes and we want to separate 2 groups.
-            
+
             // index=0 % 2 = 0 (first group)
             // index=1 % 2 = 1 (second group)
             // index=2 % 2 = 0 (first group)
@@ -176,8 +172,8 @@ namespace payCoreHW3.Controllers
             // index=5 % 2 = 1 (second group)
             // index=6 % 2 = 0 (first group)
             // index=7 % 2 = 1 (second group)
-            
-            // Its basic mat and suitable for this assignment actually.
+
+            // Its basic math and suitable for this assignment actually.
 
             var list = containerList.Select(
                     (container, index) => new

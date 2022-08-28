@@ -1,11 +1,5 @@
-﻿using NHibernate.Cfg;
-using NHibernate.Cfg.MappingSchema;
-using NHibernate.Dialect;
-using NHibernate.Mapping.ByCode;
-using payCoreHW3.Context;
-using payCoreHW3.Mapping;
-using payCoreHW3.Middleware;
-using payCoreHW3.Models;
+﻿using payCoreHW3.Middleware;
+using payCoreHW3.StartUpExtensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,28 +10,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var mapper = new ModelMapper();
-mapper.AddMappings(new []{typeof(ContainerMap), typeof(VehicleMap)});
-HbmMapping domainMapping = mapper.CompileMappingForAllExplicitlyAddedEntities();
-
-var cfg = new Configuration();
-cfg.DataBaseIntegration(c =>
-{
-    c.Dialect<PostgreSQLDialect>();
-    c.ConnectionString = builder.Configuration.GetConnectionString("PostgreSQLConnectionString");
-    c.KeywordsAutoImport = Hbm2DDLKeyWords.AutoQuote;
-    c.SchemaAction = SchemaAutoAction.Update;
-    c.LogFormattedSql = true;
-    c.LogSqlInConsole = true;
-});
-cfg.AddMapping(domainMapping);
-var sessionFactory = cfg.BuildSessionFactory();
-
-builder.Services.AddSingleton(sessionFactory);
-builder.Services.AddScoped(factory => sessionFactory.OpenSession());
-builder.Services.AddScoped<IMapperSession, MapperSession>();
-
-
+builder.Services.AddHibernatePostgreSql(builder.Configuration.GetConnectionString("PostgreSQLConnectionString"));
 
 var app = builder.Build();
 
@@ -47,8 +20,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-//app.UseMiddleware<ErrorHandlerMiddleware>();
+// add middleware
+app.UseMiddleware<ErrorHandlerMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

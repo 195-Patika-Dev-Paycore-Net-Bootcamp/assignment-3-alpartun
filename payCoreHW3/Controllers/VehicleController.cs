@@ -10,10 +10,9 @@ namespace payCoreHW3.Controllers
     [Route("api/[controller]")]
     public class VehicleController : ControllerBase
     {
-        //injection
 
         private readonly IMapperSession _session;
-    
+        //injection
         public VehicleController(IMapperSession session)
         {
             _session = session;
@@ -68,7 +67,7 @@ namespace payCoreHW3.Controllers
                 _session.CloseTransaction();
             }
             // If create operation succeeded then return Ok and message;
-            return Ok("Successfully created.");
+            return Ok("Vehicle successfully created.");
         }
 
         // PUT(Update)
@@ -78,7 +77,7 @@ namespace payCoreHW3.Controllers
             //Finding vehicle using id.
             var vehicle = _session.Vehicles.Where(x => x.Id == vehicleRequest.Id).FirstOrDefault();
             // Check vehicle is exists or not.
-            if (vehicle == null) return NotFound("Arac bulunamadi.");
+            if (vehicle == null) return BadRequest("Vehicle does not exists.");
             // Change old VehicleName and old VehiclePlate to new VehicleName and new VehiclePlate.
             vehicle.VehicleName = vehicleRequest.VehicleName;
             vehicle.VehiclePlate = vehicleRequest.VehiclePlate;
@@ -144,7 +143,7 @@ namespace payCoreHW3.Controllers
             {
                 //Rollback if something went wrong.
                 _session.Rollback();
-                return BadRequest("Deletion error.");
+                throw;
             }
             finally
             {

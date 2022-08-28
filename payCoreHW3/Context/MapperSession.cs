@@ -1,10 +1,10 @@
-﻿using System;
-using NHibernate;
+﻿using NHibernate;
 using payCoreHW3.Models;
 using ISession = NHibernate.ISession;
 
 namespace payCoreHW3.Context
 {
+    // fill our common operations and using ISession(NHiberNate)
     public class MapperSession : IMapperSession
     {
         private readonly ISession _session;
@@ -35,11 +35,7 @@ namespace payCoreHW3.Context
 
         public void CloseTransaction()
         {
-            //if (_transaction != null)
-            //{
-                _transaction.Dispose();
-                //_transaction = null;
-            //}
+            _transaction.Dispose();
         }
 
         public void Save<T>(T entity) where T : class
@@ -57,14 +53,6 @@ namespace payCoreHW3.Context
             _session.Delete(entity);
         }
 
-        /*public List<Vehicle> GetVehicles()
-        {
-            
-        }
-
-        public List<Container> GetContainers()
-        {
-        }*/
     }
 }
 

@@ -1,5 +1,4 @@
-﻿using System;
-namespace payCoreHW3.Models
+﻿namespace payCoreHW3.Models
 {
     public class Vehicle
     {

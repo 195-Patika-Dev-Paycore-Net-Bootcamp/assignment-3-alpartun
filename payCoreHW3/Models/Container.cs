@@ -1,7 +1,4 @@
-﻿using System;
-using System.Numerics;
-
-namespace payCoreHW3.Models
+﻿namespace payCoreHW3.Models
 {
     public class Container
     {
